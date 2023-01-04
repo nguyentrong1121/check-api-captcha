@@ -37,7 +37,6 @@ export default function CheatPrimal() {
     const [token, setToken] = useState(null);
     const [email, setEmail] = useState({mailbox: '', token: ''});
     const [sleep, setSleep] = useState(1000);
-    const [otp, setOtp] = useState("");
     const [authToken, setAuthToken] = useState(null);
     const [refCode, setReftCode] = useState(null);
     const [isLoading, setLoading] = useState(false);
@@ -49,22 +48,20 @@ export default function CheatPrimal() {
         "Access-Control-Allow-Methods": "*"
     }
 
-    const onSubmit = () => {
-        captchaRef.current.execute();
-    };
-
-    const onExpire = () => {
-        console.log("hCaptcha Token Expired");
+    const reset = () => {
+        setToken(null)
+        setEmail({mailbox: '', token: ''})
+        setAuthToken(null)
+        captchaRef.current.resetCaptcha();
+        setTimeout(() => {
+            fetchEmail()
+        }, sleep)
     };
 
     const onVerify = () => {
         if (authToken && authToken.length > 0) {
             fetchSetRef();
         }
-    };
-
-    const onError = (err) => {
-        console.log(`hCaptcha Error: ${err}`);
     };
 
     const fetchSetRef = () => {
@@ -82,15 +79,9 @@ export default function CheatPrimal() {
                 mail: email.mailbox,
                 status: 1
             }])
-            setToken(null)
-            setEmail({mailbox: '', token: ''})
-            setAuthToken(null)
-            captchaRef.current.resetCaptcha();
-            setTimeout(() => {
-                fetchEmail()
-            }, sleep)
+            reset()
         }).catch(error => {
-            setLoading(false)
+            reset()
         })
     }
 
@@ -133,7 +124,7 @@ export default function CheatPrimal() {
                 let regex = /\d+/g;
                 let hasNum = result.mailbox.match(regex)
                 if (result.mailbox) {
-                    if (hasNum.length > 5) {
+                    if (hasNum[0].length >= 5) {
                         fetchEmail();
                     } else {
                         setEmail(result);
@@ -146,7 +137,7 @@ export default function CheatPrimal() {
             })
             .catch(error => {
                 setLoading(false)
-                console.log('error', error)
+                reset()
             });
 
     }
@@ -168,6 +159,7 @@ export default function CheatPrimal() {
             setLoading(false)
         }).catch(error => {
             setLoading(false)
+            reset()
         })
     }
 
@@ -235,40 +227,7 @@ export default function CheatPrimal() {
             }
         }
     }, [])
-    //royere3458@sirafee.com
-    const onTestEmail = () => {
-        var requestOptions = {
-            method: 'POST',
-            redirect: 'follow'
-        };
 
-        fetch("https://mob2.temp-mail.org/mailbox", requestOptions)
-            .then(response => response.json())
-            .then(result => {
-                let myHeaders = new Headers();
-                myHeaders.append("authorization", result.token);
-                let requestOptions = {
-                    method: 'GET',
-                    headers: myHeaders,
-                    redirect: 'follow'
-                };
-                fetch("https://mob2.temp-mail.org/messages", requestOptions)
-                    .then(response => response.json())
-                    .then(result => {
-                        let regex = /\d+/g;
-                        if (result?.messages[0]?.bodyPreview) {
-                            let string = result.messages[0].bodyPreview;
-                            let matches = string.match(regex);
-                            fetchVerify(matches[0].trim())
-                        }
-                    })
-                    .catch(error => {
-                        setLoading(false)
-                        console.log('error', error)
-                    });
-            })
-            .catch(error => console.log('error', error));
-    }
     return (
         <form className="App">
             <InputText
@@ -297,8 +256,8 @@ export default function CheatPrimal() {
                 // Make sure to replace
                 sitekey="c4344dc0-0182-431f-903c-d8f53065d81d"
                 onVerify={setToken}
-                onError={onError}
-                onExpire={onExpire}
+                onError={reset}
+                onExpire={reset}
                 ref={captchaRef}
             />
             <p>Lịch sử: {history?.length}</p>
