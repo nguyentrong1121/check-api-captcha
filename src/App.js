@@ -120,7 +120,7 @@ function App() {
                 <button onClick={() => setTab(3)} style={{margin: 10}}><p>cheat ton</p></button>
             </div>
             {
-                tab === 0 ? <div className="App">
+                tab === 0 && <div className="App">
                     <label htmlFor="upload">Upload File</label>
                     <input
                         type="file"
@@ -162,8 +162,9 @@ function App() {
                             })
                         }
                     </div>
-                </div> : <CheatPrimal/>
+                </div>
             }
+            {tab === 1 && <CheatPrimal/>}
             {tab === 3 && <CheatTon/>}
             {/*<div className="App">*/}
             {/*    <button onClick={checkGaga}>*/}
