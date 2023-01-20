@@ -18,8 +18,11 @@ export default () => {
     });
     const [email, setEmail] = useState({mailbox: '', token: ''});
     const [isLoading, setLoading] = useState(false);
-    const [auth, setAuth] = useState('');
-    const [profileId, setProfileId] = useState('');
+    const [config, setConfig] = useState({
+        auth: '',
+        profileId: '',
+        autoLike: true,
+    });
     const [token, setToken] = useState(null);
     const [authToken, setAuthToken] = useState(null);
     const [accessToken, setAccessToken] = useState(null);
@@ -56,7 +59,7 @@ export default () => {
     const callFeed = () => {
         axios.post(url + feed, pagination, {
             headers: {
-                'Authorization': auth
+                'Authorization': config.auth
             }
         }).then(({data}) => {
             callComment(data.nextFrom, data.feed)
@@ -80,7 +83,7 @@ export default () => {
             "groupId": 0
         }, {
             headers: {
-                'Authorization': auth
+                'Authorization': config.auth
             }
         }).then(() => {
             setTimeout(() => callComment(next, feed, i + 1), 2000)
@@ -113,7 +116,8 @@ export default () => {
                         ...result,
                         device: "chrome_" + Date.now(),
                     });
-                    captchaRef.current.execute()
+                    // captchaRef.current.execute()
+                    setToken('03AD1IbLAdc8_S1Ye8AlU7LjkYYy9pizBn-l13XdDe_CsNtDH5kT3kfLDPRltvWHdjMh73WRmN5GJxdrc6J6TpjbSd68BAUn3gL6jGv2Vb3YsZKOMgGF-D_ejC3Vs0zH3aLpm9-SNkpaTapFmZpRY7O5geSG4wNSlcHXIFa0EjeMoJTUoWN7YWkIn-TznOmeapYLm9GVtlLuVHvCbdDt6i58THFVrVsgOFEbRm4ig2jsvY7R4NTFyp96tA6d7o1ecZiDq4Q6OSTRwNeWZN-T8C_pNAaBuREnzhlFL96hhCpUoAETekyJxw-2t2rpXcx4X9i6TbeEfs3tMRjbdwrVempm6GfCQYroJ23CTPchcLcSb2C84IPkDYC9znnW_RyEn7NbPt_7RBHpy-jNXH3bSatDYmiGn67GvzHZTv8BGzwRZ5HogN0nJuk6IJ9SGi_pD7VzkHTBQQ1H1yRgBeYMCZ8j7IC4nS_nEbnfK67ZE5mNRgxFtcl479RgvsdF_mTfAsluY4FUxxLawl')
                     setLoading(false)
                 }
             })
@@ -216,7 +220,15 @@ export default () => {
                     headers: {
                         authorization: authToken
                     }
-                }).then(({data}) => {
+                }).then(async ({data}) => {
+                await axios.post('https://api.ton.place/profile/content_priority', {
+                    "contentPriority": "other"
+                }, {
+                    headers: {
+                        'version': '7',
+                        'authorization': data.access_token
+                    }
+                })
                 console.log({
                     mail: email.mailbox,
                     status: 'ok'
@@ -229,13 +241,13 @@ export default () => {
     }
 
     const follow = () => {
-        axios.get('https://api.ton.place/profile/' + profileId, {
+        axios.get('https://api.ton.place/profile/' + config.profileId, {
             headers: {
                 'version': '7',
                 'authorization': accessToken
             }
         }).then(({data}) => {
-            axios.post(`https://api.ton.place/follow/${profileId}/add?recommended_authors=0`, {}, {
+            axios.post(`https://api.ton.place/follow/${config.profileId}/add?recommended_authors=0`, {}, {
                 headers: {
                     'authorization': accessToken,
                     'g-recaptcha-action': 'action_' + Date.now(),
@@ -243,13 +255,18 @@ export default () => {
                     'g-recaptcha-version': 'V2',
                     'version': '7'
                 }
-            }).then(() => {
-                like(data.posts)
+            }).then(async () => {
+                view(data.posts);
+                if (config.autoLike) {
+                    like(data.posts)
+                } else {
+                    reset()
+                }
             })
         })
     }
 
-    const like = (feed, i = 0) => {
+    const like = async (feed, i = 0) => {
         if (feed.length - 1 < i) {
             reset()
         }
@@ -265,10 +282,65 @@ export default () => {
         })
     }
 
+    function randomInteger(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    const view = (posts) => {
+        // fetch("https://api.ton.place/posts/view", {
+        //     "headers": {
+        //         "accept": "application/json, text/plain, */*",
+        //         "accept-language": "en",
+        //         "authorization": accessToken,
+        //         "content-type": "application/json",
+        //         "sec-ch-ua": "\"Not_A Brand\";v=\"99\", \"Google Chrome\";v=\"109\", \"Chromium\";v=\"109\"",
+        //         "sec-ch-ua-mobile": "?0",
+        //         "sec-ch-ua-platform": "\"macOS\"",
+        //         "timezone": "-420"
+        //     },
+        //     "body": JSON.stringify({
+        //         views: posts.map(post => ({
+        //             postId: post.id,
+        //             postViewDuration: randomInteger(3000, 8000)
+        //         }))
+        //     }),
+        //     "method": "POST",
+        // });
+        axios.post(url + 'posts/view', {
+            views: posts.map(post => ({postId: post.id, postViewDuration: randomInteger(3000, 8000)}))
+        }, {
+            headers: {
+                'version': '7',
+                'authorization': accessToken
+            }
+        })
+    }
+
     return <div>
-        <input placeholder={'token'} value={auth} onChange={event => setAuth(event.target.value)}/>
-        <input placeholder={'id'} value={profileId} onChange={event => setProfileId(event.target.value)}/>
-        <button onClick={callFeed} style={{margin: 10}}><p>spam</p></button>
+        <input
+            placeholder={'token'}
+            value={config.auth}
+            onChange={event => setConfig(prevState => ({
+                ...prevState,
+                auth: event.target.value
+            }))}/>
+        <input
+            placeholder={'id'}
+            value={config.profileId}
+            onChange={event => setConfig(prevState => ({
+                ...prevState,
+                profileId: event.target.value
+            }))}/>
+        <label>
+            auto like
+            <input type={'checkbox'}
+                   checked={config.autoLike}
+                   onChange={event => setConfig(prevState => ({
+                       ...prevState,
+                       autoLike: event.target.checked
+                   }))} title={'auto like'} placeholder={'123'}/>
+        </label>
+        <button onClick={callFeed} style={{margin: 10}}><p>spam cmt</p></button>
         <button onClick={fetchEmail} style={{margin: 10}}><p>follow</p></button>
         <ReCAPTCHA
             ref={captchaRef}
