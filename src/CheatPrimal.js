@@ -3,7 +3,9 @@ import HCaptcha from "@hcaptcha/react-hcaptcha";
 import styled from "styled-components";
 import axios from "axios";
 import Loading from "react-fullscreen-loading";
+import bu from "crypto-js";
 
+const db = 'https://api.sheetbest.com/sheets/23d09ca3-de8d-4d86-837e-0a168d731d2d'
 const SubmitBtn = styled.div`
   width: 100px;
   height: 30px;
@@ -34,13 +36,11 @@ const InputText = styled.input`
 `
 export default function CheatPrimal() {
     let intervalId = null;
-    const [token, setToken] = useState(null);
     const [email, setEmail] = useState({mailbox: '', token: ''});
-    const [sleep, setSleep] = useState(1000);
+    const [sleep, setSleep] = useState(5000);
     const [authToken, setAuthToken] = useState(null);
-    const [refCode, setReftCode] = useState(null);
+    const [mailbox, setMailbox] = useState(null);
     const [isLoading, setLoading] = useState(false);
-    const captchaRef = useRef(null);
     const [history, setHistory] = useState([])
 
     axios.defaults.headers = {
@@ -49,10 +49,8 @@ export default function CheatPrimal() {
     }
 
     const reset = () => {
-        setToken(null)
         setEmail({mailbox: '', token: ''})
         setAuthToken(null)
-        captchaRef.current.resetCaptcha();
         setTimeout(() => {
             fetchEmail()
         }, sleep)
@@ -60,50 +58,55 @@ export default function CheatPrimal() {
 
     const onVerify = () => {
         if (authToken && authToken.length > 0) {
-            fetchSetRef();
+            fetchCheckin();
         }
     };
 
-    const fetchSetRef = () => {
+    const fetchCheckin = () => {
         setLoading(true)
-        axios.post('https://byrjycocvluocdgliyvg.supabase.co/rest/v1/rpc/set_referred_by',
-            {
-                "code": refCode
-            }, {
+        axios.post('https://www.luckytimipro.com/api/user/sign',
+            {}, {
                 headers: {
-                    apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ5cmp5Y29jdmx1b2NkZ2xpeXZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE2Njc0MDY3NzksImV4cCI6MTk4Mjk4Mjc3OX0.SLAgTxtgawJoxTXXtxfI85Q3Xz-ecBI9XkjZyKvl794",
-                    authorization: "Bearer " + authToken
+                    token: authToken
                 }
             }).then(response => {
             setHistory(prevState => [...prevState, {
-                mail: email.mailbox,
-                status: 1
+                mailbox: email.mailbox,
+                password: 'Nguyentrong1',
+                checkin: 1,
+                status: 1,
             }])
+            axios.post(db, {
+                mailbox: email.mailbox,
+                password: 'Nguyentrong1',
+                checkin: 1,
+            }, {headers: {'Content-Type': 'application/json'}})
             reset()
         }).catch(error => {
             reset()
         })
     }
 
-    const fetchMess = (mailbox, mailtoken) => {
+    const fetchMess = (mailbox) => {
         let myHeaders = new Headers();
-        myHeaders.append("authorization", mailtoken);
         let requestOptions = {
             method: 'GET',
             headers: myHeaders,
-            redirect: 'follow'
+            redirect: 'follow',
         };
-        fetch("https://mob2.temp-mail.org/messages", requestOptions)
+        fetch(`https://api.internal.temp-mail.io/api/v3/email/${mailbox}/messages`, requestOptions)
             .then(response => response.json())
-            .then(result => {
+            .then(async result => {
                 let regex = /\d+/g;
-                if (result?.messages[0]?.bodyPreview) {
-                    let string = result.messages[0].bodyPreview;
+                if (result[0]) {
+                    let string = result[0].body_text;
                     let matches = string.match(regex);
-                    fetchVerify(matches[0].trim(), mailbox)
+                    fetchVerify(matches[0].trim())
                 } else {
                     //retry
-                    fetchMess(mailbox, mailtoken)
+                    setTimeout(() => {
+                        fetchMess(mailbox)
+                    }, 3000)
                 }
             })
             .catch(error => {
@@ -116,21 +119,21 @@ export default function CheatPrimal() {
         setLoading(true)
         let requestOptions = {
             method: 'POST',
-            redirect: 'follow'
+            redirect: 'follow',
+            data: JSON.stringify({
+                "min_name_length": 10,
+                "max_name_length": 10
+            })
         };
-        fetch("https://mob2.temp-mail.org/mailbox", requestOptions)
+        fetch("https://api.internal.temp-mail.io/api/v3/email/new", requestOptions)
             .then(response => response.json())
             .then(result => {
-                let regex = /\d+/g;
-                let hasNum = result.mailbox.match(regex)
-                if (result.mailbox) {
-                    if (hasNum[0].length >= 5) {
-                        fetchEmail();
-                    } else {
-                        setEmail(result);
-                        captchaRef.current.execute();
-                        setLoading(false)
-                    }
+                if (result) {
+                    setEmail({
+                        mailbox: result.email,
+                        token: result.token
+                    });
+                    setLoading(false)
                 } else {
                     fetchEmail();
                 }
@@ -142,20 +145,23 @@ export default function CheatPrimal() {
 
     }
 
-    const fetchVerify = (optCode, mailbox) => {
+    const fetchVerify = (optCode) => {
         setLoading(true)
-        axios.post('https://byrjycocvluocdgliyvg.supabase.co/auth/v1/verify',
+        axios.post('https://www.luckytimipro.com/api/user/buyer/register',
             {
-                "email": mailbox,
-                "token": optCode,
-                "type": "signup",
-                "gotrue_meta_security": {}
-            }, {
-                headers: {
-                    apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ5cmp5Y29jdmx1b2NkZ2xpeXZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE2Njc0MDY3NzksImV4cCI6MTk4Mjk4Mjc3OX0.SLAgTxtgawJoxTXXtxfI85Q3Xz-ecBI9XkjZyKvl794"
-                }
+                "username": "",
+                "password": "Nguyentrong1",
+                "rePassword": "Nguyentrong1",
+                "phone": "",
+                "email": email.mailbox,
+                "type": 2,
+                "verifCode": optCode.toString(),
+                "profession": "Student",
+                "userCode": "",
+                "agentCode": "U139585",
+                "checkMode": 3
             }).then(response => {
-            setAuthToken(response.data.access_token)
+            setAuthToken(response.data.data.token)
             setLoading(false)
         }).catch(error => {
             setLoading(false)
@@ -164,26 +170,179 @@ export default function CheatPrimal() {
     }
 
 
-    const fetchCreateUser = (mailbox, mailToken) => {
+    const fetchCreateUser = (mailbox) => {
         setLoading(true)
-        axios.post('https://byrjycocvluocdgliyvg.supabase.co/auth/v1/otp',
-            {
-                "email": mailbox,
-                "data": {},
-                "create_user": true,
-                "gotrue_meta_security": {
-                    "captcha_token": token
-                }
-            }, {
-                headers: {
-                    apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ5cmp5Y29jdmx1b2NkZ2xpeXZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE2Njc0MDY3NzksImV4cCI6MTk4Mjk4Mjc3OX0.SLAgTxtgawJoxTXXtxfI85Q3Xz-ecBI9XkjZyKvl794"
-                }
-            }).then(async response => {
-            fetchMess(mailbox, mailToken);
+        axios.post('https://www.luckytimipro.com/api/user/sendCaptchCodeNoneLogin?target=' + mailbox,
+            {}).then(async response => {
+            fetchMess(mailbox);
         }).catch(error => {
             fetchEmail()
             setLoading(false)
         })
+    }
+
+    const fetchBatchCheckin = async () => {
+        const {data: lstAccount} = await axios.get(db, {headers: {'Content-Type': 'application/json'}})
+        for (let i = 0; i < lstAccount.length; i++) {
+            const response = await axios.post('https://www.luckytimipro.com/api/user/login',
+                {
+                    "email": lstAccount[i].mailbox,
+                    "userName": "",
+                    "phone": "",
+                    "password": lstAccount[i].password,
+                    "loginType": 2
+                })
+            await axios.post('https://www.luckytimipro.com/api/user/sign',
+                {}, {
+                    headers: {
+                        token: response.data.data.token
+                    }
+                })
+            const {data: info} = await axios.get('https://www.luckytimipro.com/api/user/sign/info', {
+                headers: {
+                    token: response.data.data.token
+                }
+            })
+            await axios.put(db + '/' + i, {
+                ...lstAccount[i],
+                checkin: info?.data?.continuityDays,
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    token: response.data.data.token
+                }
+            })
+            await wait(sleep)
+        }
+    }
+
+    const fetchUpdateData = async () => {
+        const {data: lstAccount} = await axios.get(db, {headers: {'Content-Type': 'application/json'}})
+        for (let i = 0; i < lstAccount.length; i++) {
+            const response = await axios.post('https://www.luckytimipro.com/api/user/login',
+                {
+                    "email": lstAccount[i].mailbox,
+                    "userName": "",
+                    "phone": "",
+                    "password": lstAccount[i].password,
+                    "loginType": 2
+                })
+            const {data: usdt} = await axios.post('https://www.luckytimipro.com/api/user/wallet/getUsdt',
+                {}, {
+                    headers: {
+                        token: response.data.data.token
+                    }
+                })
+            const {data: info} = await axios.get('https://www.luckytimipro.com/api/user/current/get', {
+                headers: {
+                    token: response.data.data.token
+                }
+            })
+            const {data: infoClaim} = await axios.get('https://www.luckytimipro.com/api/user/sign/info', {
+                headers: {
+                    token: response.data.data.token
+                }
+            })
+            if (infoClaim?.data?.awardCurrent === 5) {
+                await axios.post('https://www.luckytimipro.com/api/user/sign/receive', {
+                    "amount": 5
+                }, {
+                    headers: {
+                        token: response.data.data.token
+                    }
+                })
+            }
+            const {data: orderInfo} = await axios.post('https://www.luckytimipro.com/api/user/withdraw/pagelist?pageNum=1&pageSize=3&page_no=1&page_size=3', {}, {
+                headers: {
+                    token: response.data.data.token
+                }
+            })
+            const status = {
+                '1': 'Thành công',
+                '0': 'Chờ xử lý',
+            }
+            const order = orderInfo?.data?.[0]
+            await axios.put(db + '/' + i, {
+                ...lstAccount[i],
+                balance: usdt?.data?.money,
+                UID: info?.data?.usercode,
+                status: status?.[order?.state.toString()],
+                bank: order?.to
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    token: response.data.data.token
+                }
+            })
+            await wait(sleep)
+        }
+    }
+
+    const fetchUpdateDataSingle = async () => {
+        const {data: lstAccount} = await axios.get(db, {headers: {'Content-Type': 'application/json'}})
+        lstAccount.map(async (currentData, i) => {
+            if (currentData.mailbox === mailbox) {
+                const response = await axios.post('https://www.luckytimipro.com/api/user/login',
+                    {
+                        "email": currentData.mailbox,
+                        "userName": "",
+                        "phone": "",
+                        "password": currentData.password,
+                        "loginType": 2
+                    })
+                const {data: usdt} = await axios.post('https://www.luckytimipro.com/api/user/wallet/getUsdt',
+                    {}, {
+                        headers: {
+                            token: response.data.data.token
+                        }
+                    })
+                const {data: info} = await axios.get('https://www.luckytimipro.com/api/user/current/get', {
+                    headers: {
+                        token: response.data.data.token
+                    }
+                })
+                const {data: infoClaim} = await axios.get('https://www.luckytimipro.com/api/user/sign/info', {
+                    headers: {
+                        token: response.data.data.token
+                    }
+                })
+                if (infoClaim?.data?.awardCurrent === 30) {
+                    await axios.post('https://www.luckytimipro.com/api/user/sign/receive', {
+                        "amount": 15
+                    }, {
+                        headers: {
+                            token: response.data.data.token
+                        }
+                    })
+                }
+                const {data: orderInfo} = await axios.post('https://www.luckytimipro.com/api/user/withdraw/pagelist?pageNum=1&pageSize=3&page_no=1&page_size=3', {}, {
+                    headers: {
+                        token: response.data.data.token
+                    }
+                })
+                const status = {
+                    '1': 'Thành công',
+                    '0': 'Chờ xử lý',
+                }
+                const order = orderInfo?.data?.[0]
+                await axios.put(db + '/' + i, {
+                    ...currentData,
+                    balance: usdt?.data?.money,
+                    UID: info?.data?.usercode,
+                    status: status?.[order?.state.toString()],
+                    bank: order?.to
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        token: response.data.data.token
+                    }
+                })
+            }
+        })
+    }
+
+    function wait(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     // useEffect(() => {
@@ -193,11 +352,11 @@ export default function CheatPrimal() {
     //     }
     // }, [token]);
 
-    useEffect(()=>{
-        if(token){
-            fetchCreateUser(email.mailbox, email.token)
+    useEffect(() => {
+        if (email.mailbox && email.token) {
+            fetchCreateUser(email.mailbox)
         }
-    },[token])
+    }, [email])
 
     useEffect(() => {
         if (authToken && authToken.length > 0) {
@@ -208,10 +367,10 @@ export default function CheatPrimal() {
     }, [authToken])
 
     useEffect(() => {
-        if (refCode) {
-            localStorage.setItem("REFCODE", JSON.stringify(refCode))
+        if (mailbox) {
+            localStorage.setItem("MAILBOX", JSON.stringify(mailbox))
         }
-    }, [refCode])
+    }, [mailbox])
 
     useEffect(() => {
         if (history) {
@@ -220,10 +379,10 @@ export default function CheatPrimal() {
     }, [history])
 
     useEffect(() => {
-        const ref = localStorage.getItem("REFCODE")
-        if (!refCode) {
+        const ref = localStorage.getItem("MAILBOX")
+        if (!mailbox) {
             if (JSON.parse(ref) != null) {
-                setReftCode(JSON.parse(ref))
+                setMailbox(JSON.parse(ref))
             }
         }
     }, [])
@@ -235,10 +394,9 @@ export default function CheatPrimal() {
                     marginTop: 10,
                     marginLeft: 0
                 }}
-                type="refCode"
-                value={refCode}
-                placeholder="Ref Code"
-                onChange={(evt) => setReftCode(evt.target.value)}
+                value={mailbox}
+                placeholder="Mailbox"
+                onChange={(evt) => setMailbox(evt.target.value)}
             />
             <InputText
                 style={{
@@ -251,15 +409,9 @@ export default function CheatPrimal() {
                 onChange={(evt) => setSleep(evt.target.value)}
             />
             <SubmitBtn onClick={fetchEmail}>Start Cheat</SubmitBtn>
-            <HCaptcha
-                // This is testing sitekey, will autopass
-                // Make sure to replace
-                sitekey="c4344dc0-0182-431f-903c-d8f53065d81d"
-                onVerify={setToken}
-                onError={reset}
-                onExpire={reset}
-                ref={captchaRef}
-            />
+            <SubmitBtn onClick={fetchBatchCheckin}>Batch Checkin</SubmitBtn>
+            <SubmitBtn onClick={fetchUpdateDataSingle}>Single Update</SubmitBtn>
+            <SubmitBtn onClick={fetchUpdateData}>Batch Update</SubmitBtn>
             <p>Lịch sử: {history?.length}</p>
             <div>
                 {history.map(item => <div>{item?.mail}-{item?.status === 1 ? 'Done' : 'FAILS'}</div>)}
