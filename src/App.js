@@ -5,6 +5,11 @@ import moment from "moment";
 import * as xlsx from "xlsx";
 import {CopyToClipboard} from "react-copy-to-clipboard/src";
 import CheatPrimal from "./CheatPrimal";
+import TonPlace from "./TonPlace";
+import CheatBomofy from "./CheatBomofy";
+import Camel from "./Camel";
+import CheatTaker from "./CheatTaker";
+import CheatBytebeat from "./CheatBytebeat";
 
 function App() {
     const [input, setInput] = useState([])
@@ -115,10 +120,12 @@ function App() {
                 justifyContent: 'center'
             }}>
                 <button onClick={() => setTab(0)} style={{margin: 10}}><p>check</p></button>
-                <button onClick={() => setTab(1)} style={{margin: 10}}><p>cheat</p></button>
+                <button onClick={() => setTab(1)} style={{margin: 10}}><p>lucky</p></button>
+                <button onClick={() => setTab(2)} style={{margin: 10}}><p>taker</p></button>
+                <button onClick={() => setTab(3)} style={{margin: 10}}><p>byteBeat</p></button>
             </div>
             {
-                tab === 0 ? <div className="App">
+                tab === 0 && <div className="App">
                     <label htmlFor="upload">Upload File</label>
                     <input
                         type="file"
@@ -160,7 +167,16 @@ function App() {
                             })
                         }
                     </div>
-                </div> : <CheatPrimal/>
+                </div>
+            }
+            {
+                tab === 1 && <CheatPrimal/>
+            }
+            {
+                tab === 2 && <CheatTaker/>
+            }
+            {
+                tab === 3 && <CheatBytebeat/>
             }
             {/*<div className="App">*/}
             {/*    <button onClick={checkGaga}>*/}
