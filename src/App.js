@@ -10,6 +10,7 @@ import CheatBomofy from "./CheatBomofy";
 import Camel from "./Camel";
 import CheatTaker from "./CheatTaker";
 import CheatBytebeat from "./CheatBytebeat";
+import CheatBunny from "./CheatBunny";
 
 function App() {
     const [input, setInput] = useState([])
@@ -124,6 +125,7 @@ function App() {
                 <button onClick={() => setTab(2)} style={{margin: 10}}><p>taker</p></button>
                 <button onClick={() => setTab(3)} style={{margin: 10}}><p>byteBeat</p></button>
                 <button onClick={() => setTab(4)} style={{margin: 10}}><p>bomo</p></button>
+                <button onClick={() => setTab(5)} style={{margin: 10}}><p>bunny</p></button>
             </div>
             {
                 tab === 0 && <div className="App">
@@ -181,6 +183,9 @@ function App() {
             }
             {
                 tab === 4 && <CheatBomofy/>
+            }
+            {
+                tab === 5 && <CheatBunny/>
             }
             {/*<div className="App">*/}
             {/*    <button onClick={checkGaga}>*/}
