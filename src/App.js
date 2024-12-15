@@ -123,6 +123,7 @@ function App() {
                 <button onClick={() => setTab(1)} style={{margin: 10}}><p>lucky</p></button>
                 <button onClick={() => setTab(2)} style={{margin: 10}}><p>taker</p></button>
                 <button onClick={() => setTab(3)} style={{margin: 10}}><p>byteBeat</p></button>
+                <button onClick={() => setTab(4)} style={{margin: 10}}><p>bomo</p></button>
             </div>
             {
                 tab === 0 && <div className="App">
@@ -177,6 +178,9 @@ function App() {
             }
             {
                 tab === 3 && <CheatBytebeat/>
+            }
+            {
+                tab === 4 && <CheatBomofy/>
             }
             {/*<div className="App">*/}
             {/*    <button onClick={checkGaga}>*/}

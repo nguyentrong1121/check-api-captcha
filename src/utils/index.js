@@ -1,3 +1,5 @@
+import bu from "crypto-js";
+
 export const generatePhoneModel = () => {
     // Danh sách các model điện thoại và hãng sản xuất, bao gồm systemName
     const phoneModels = [
@@ -39,6 +41,31 @@ export const generateVietnameseName = () => {
     return randomFirstName + " " + randomMiddleName + " " + randomLastName;
 };
 
+export const generateRandomPhoneNumber = () => {
+    const phoneNumber = [];
+    for (let i = 0; i < 9; i++) {
+        phoneNumber.push(Math.floor(Math.random() * 10));
+    }
+    return phoneNumber.join('');
+};
+
+export const generateRandomEmail = () => {
+    const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let email = '';
+    for (let i = 0; i < 10; i++) {
+        email += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    const domains = ['gmail.com', 'yahoo.com', 'outlook.com', 'mail.com'];
+    const domain = domains[Math.floor(Math.random() * domains.length)];
+    email += '@' + domain;
+    return email;
+};
+
+export const generateRandomReg = () => ({
+    phoneNumber: generateRandomPhoneNumber(),
+    email: generateRandomEmail()
+});
+
 export const generateUUID = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     let r = Math.random() * 16 | 0,
         v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -57,3 +84,18 @@ export const generateDeviceToken = (length = 24) => {
 };
 
 export const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+export const decryptData = (data) => {
+    const p = bu.enc.Hex.parse(bu.SHA256('sl236cl929ki829is0c44928q12ce9ue6').toString())
+        , M = bu.enc.Base64.parse(data)
+        , o = bu.lib.WordArray.create(M.words.slice(0, 4))
+        , t = bu.lib.WordArray.create(M.words.slice(4))
+        , z = bu.AES.decrypt({
+        ciphertext: t
+    }, p, {
+        iv: o,
+        mode: bu.mode.CBC,
+        padding: bu.pad.Pkcs7
+    }).toString(bu.enc.Utf8);
+    return JSON.parse(z)
+}

@@ -3,6 +3,8 @@ import HCaptcha from "@hcaptcha/react-hcaptcha";
 import styled from "styled-components";
 import axios from "axios";
 import Loading from "react-fullscreen-loading";
+import {decryptData, encryptData, generateRandomReg} from "./utils";
+import moment from "moment";
 
 var bu = require("crypto-js");
 
@@ -37,7 +39,6 @@ const InputText = styled.input`
   margin-left: 10px;
 `
 export default function CheatBomofy() {
-    let intervalId = null;
     const [email, setEmail] = useState({mailbox: '', token: ''});
     const [sleep, setSleep] = useState(5000);
     const [authToken, setAuthToken] = useState(null);
@@ -53,15 +54,6 @@ export default function CheatBomofy() {
     const reset = () => {
         setEmail({mailbox: '', token: ''})
         setAuthToken(null)
-        setTimeout(() => {
-            fetchEmail()
-        }, sleep)
-    };
-
-    const onVerify = () => {
-        if (authToken && authToken.length > 0) {
-            fetchCheckin();
-        }
     };
 
     const fetchCheckin = () => {
@@ -88,56 +80,15 @@ export default function CheatBomofy() {
         })
     }
 
-    const fetchEmail = () => {
+    const fetchLogin = async () => {
         setLoading(true)
-        let requestOptions = {
-            method: 'POST',
-            redirect: 'follow',
-            data: JSON.stringify({
-                "min_name_length": 10,
-                "max_name_length": 10
-            })
-        };
-        fetch("https://api.internal.temp-mail.io/api/v3/email/new", requestOptions)
-            .then(response => response.json())
-            .then(result => {
-                if (result) {
-                    setEmail({
-                        mailbox: result.email,
-                        token: result.token
-                    });
-                    setLoading(false)
-                } else {
-                    fetchEmail();
-                }
-            })
-            .catch(error => {
-                setLoading(false)
-                reset()
-            });
-
-    }
-
-    const fetchLogin = () => {
-        setLoading(true)
-        axios.post('https://api.bomofy-ai.com/api/login',
+        axios.post('https://api.robeco-usdt.com/api/login',
             {
-                "a": email.mailbox,
+                "a": email.phoneNumber,
                 "p": "940289dda3df035b9edb74a11e012aff",
                 "c": ""
             }).then(response => {
-            const p = bu.enc.Hex.parse(bu.SHA256('sl236cl929ki829is0c44928q12ce9ue6').toString())
-                , M = bu.enc.Base64.parse(response.data)
-                , o = bu.lib.WordArray.create(M.words.slice(0, 4))
-                , t = bu.lib.WordArray.create(M.words.slice(4))
-                , z = bu.AES.decrypt({
-                ciphertext: t
-            }, p, {
-                iv: o,
-                mode: bu.mode.CBC,
-                padding: bu.pad.Pkcs7
-            }).toString(bu.enc.Utf8);
-            const decrypt = JSON.parse(z)
+            const decrypt = decryptData(response.data)
             setAuthToken(decrypt.data.t)
             setLoading(false)
         }).catch(error => {
@@ -147,28 +98,50 @@ export default function CheatBomofy() {
     }
 
 
-    const fetchCreateUser = (mailbox) => {
+    const fetchCreateUser = async () => {
         setLoading(true)
-        axios.post('https://api.bomofy-ai.com/api/register',
-            {
-                "a": mailbox,
-                "p": "940289dda3df035b9edb74a11e012aff",
-                "sp": "940289dda3df035b9edb74a11e012aff",
-                "ut": 1,
-                "c": "399463",
-                "em": mailbox,
-                "contact_info": "",
-                "em_co": "",
-                "tg": "",
-                "whs": "",
-                "captcha": "",
-                "phone_area_code": "+1"
-            }).then(async response => {
-            fetchLogin();
-        }).catch(error => {
-            fetchEmail()
-            setLoading(false)
-        })
+        const data = await fetch(`https://api.robeco-usdt.com/api/login_v?rts=${new Date().getTime()}&hideloading=true`, {
+            headers: {
+                'st-ttgn':
+        'b905ccf01402b3a39a90f4f43c43ae86',
+                "accept": "*/*",
+            }
+        }).then(response => response.blob())
+        const imgUrl = URL.createObjectURL(data);
+        document.getElementById('image').src = imgUrl;
+        const info = generateRandomReg()
+        setEmail({mailbox: info.email, number: info.phoneNumber})
+        setTimeout(()=>{
+            const captcha = prompt('Nhập captcha')
+            axios.post('https://api.robeco-usdt.com/api/register',
+                {
+                    "a": "+1" + info.phoneNumber,
+                    "p": "940289dda3df035b9edb74a11e012aff",
+                    "sp": "940289dda3df035b9edb74a11e012aff",
+                    "ut": 2,
+                    "c": refCode,
+                    "em": info.email,
+                    "contact_info": "+1" + info.phoneNumber,
+                    "em_co": "",
+                    "tg": "",
+                    "whs": "",
+                    "captcha": captcha,
+                    "phone_area_code": "+1"
+                },{
+                    headers: {
+                        'st-ttgn': 'b905ccf01402b3a39a90f4f43c43ae86',
+                        "content-type": "application/json",
+                        "st-lang": "vi",
+                        "st-ctime": moment().format('YYYY-MM-DD HH:mm:ss'),
+                    }
+                }).then(async response => {
+                fetchLogin();
+            }).catch(error => {
+                wait(sleep)
+                fetchCreateUser()
+                setLoading(false)
+            })
+        }, 2000)
     }
 
     const fetchBatchCheckin = async () => {
@@ -213,20 +186,6 @@ export default function CheatBomofy() {
     // }, [token]);
 
     useEffect(() => {
-        if (email.mailbox && email.token) {
-            fetchCreateUser(email.mailbox)
-        }
-    }, [email])
-
-    useEffect(() => {
-        if (authToken && authToken.length > 0) {
-            onVerify()
-            clearInterval(intervalId);
-            clearTimeout();
-        }
-    }, [authToken])
-
-    useEffect(() => {
         if (refCode) {
             localStorage.setItem("REFCODE", JSON.stringify(refCode))
         }
@@ -269,7 +228,8 @@ export default function CheatBomofy() {
                 placeholder="Thời gian chờ"
                 onChange={(evt) => setSleep(evt.target.value)}
             />
-            <SubmitBtn onClick={fetchEmail}>Start Cheat</SubmitBtn>
+            <img id={'image'}/>
+            <SubmitBtn onClick={fetchCreateUser}>Login</SubmitBtn>
             <SubmitBtn onClick={fetchBatchCheckin}>Batch Checkin</SubmitBtn>
             <p>Lịch sử: {history?.length}</p>
             <div>
