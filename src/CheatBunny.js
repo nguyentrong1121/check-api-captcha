@@ -70,7 +70,7 @@ export default function CheatBunny() {
             {
                 "e": "Xh37xudBp6q6jrM45yJuhw=="
             }, {headers: {'Content-Type': 'application/json', ...getHeaderParams(authToken['auth_info'], authToken['user_info'])}})
-
+        axios.get('https://bunnycontract.com/api/sign-in/score-create', {headers: {'Content-Type': 'application/json', ...getHeaderParams(authToken['auth_info'], authToken['user_info'])}})
         const {data: userLevel} = await axios.get('https://bunnycontract.com/api/user-level/info', {headers: {'Content-Type': 'application/json', ...getHeaderParams(authToken['auth_info'], authToken['user_info'])}})
         const diff = userLevel['total_times'] - userLevel['over_times']
         if (diff > 0) {
