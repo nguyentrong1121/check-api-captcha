@@ -3,6 +3,7 @@ import HCaptcha from "@hcaptcha/react-hcaptcha";
 import styled from "styled-components";
 import axios from "axios";
 import Loading from "react-fullscreen-loading";
+import {generateRandomEmail, getRandomNumber} from "./utils";
 
 var CryptoJS = require("crypto-js");
 
@@ -41,7 +42,7 @@ export default function CheatBunny() {
     const [sleep, setSleep] = useState(5000);
     const [authToken, setAuthToken] = useState(null);
     const [mailbox, setMailbox] = useState(null);
-    const [ref, setRef] = useState('12VUQL1R');
+    const [ref, setRef] = useState('J4PR8JA');
     const [isLoading, setLoading] = useState(false);
     const [history, setHistory] = useState([])
 
@@ -54,8 +55,8 @@ export default function CheatBunny() {
         setEmail({mailbox: '', token: ''})
         setAuthToken(null)
         setTimeout(() => {
-            fetchEmail()
-        }, sleep)
+            fetchVerify()
+        }, getRandomNumber(6000, 120000))
     };
 
     const onVerify = () => {
@@ -69,90 +70,43 @@ export default function CheatBunny() {
         await axios.post('https://bunnycontract.com/api/activity/draw-create',
             {
                 "e": "Xh37xudBp6q6jrM45yJuhw=="
-            }, {headers: {'Content-Type': 'application/json', ...getHeaderParams(authToken['auth_info'], authToken['user_info'])}})
-        axios.get('https://bunnycontract.com/api/sign-in/score-create', {headers: {'Content-Type': 'application/json', ...getHeaderParams(authToken['auth_info'], authToken['user_info'])}})
-        const {data: userLevel} = await axios.get('https://bunnycontract.com/api/user-level/info', {headers: {'Content-Type': 'application/json', ...getHeaderParams(authToken['auth_info'], authToken['user_info'])}})
-        const diff = userLevel['total_times'] - userLevel['over_times']
+            }, {headers: {'Content-Type': 'application/json', ...getHeaderParams(authToken?.['auth_info'], authToken?.['user_info'])}})
+        axios.get('https://bunnycontract.com/api/sign-in/score-create', {headers: {'Content-Type': 'application/json', ...getHeaderParams(authToken?.['auth_info'], authToken?.['user_info'])}})
+        let {data: userLevel} = await axios.get('https://bunnycontract.com/api/user-level/info', {headers: {'Content-Type': 'application/json', ...getHeaderParams(authToken?.['auth_info'], authToken?.['user_info'])}})
+        userLevel = decrypt(userLevel?.['e'])
+        const diff = userLevel?.['total_times'] - userLevel?.['over_times']
         if (diff > 0) {
             for (let i = 0; i < diff; i++) {
                 await axios.post('https://bunnycontract.com/api/user-level/make',
                     {
                         "e": "Xh37xudBp6q6jrM45yJuhw=="
-                    }, {headers: {'Content-Type': 'application/json', ...getHeaderParams(authToken['auth_info'], authToken['user_info'])}})
+                    }, {headers: {'Content-Type': 'application/json', ...getHeaderParams(authToken?.['auth_info'], authToken?.['user_info'])}})
             }
         }
-        const {data: user} = await axios.get('https://bunnycontract.com/api/user/info', {headers: {'Content-Type': 'application/json', ...getHeaderParams(authToken['auth_info'], authToken['user_info'])}})
+        let {data: user} = await axios.get('https://bunnycontract.com/api/user/info', {headers: {'Content-Type': 'application/json', ...getHeaderParams(authToken?.['auth_info'], authToken?.['user_info'])}})
+        user = decrypt(user?.['e'])
         setHistory(prevState => [...prevState, {
             mailbox: email.mailbox,
-            balance: user['user_info']['score_balance'],
+            balance: user?.['user_info']?.['score_balance'],
         }])
         axios.post(db, {
             mailbox: email.mailbox,
-            authInfo: authToken['auth_info'],
-            uid: authToken['user_info']['uid'],
-            balance: user['user_info']['score_balance'],
+            authInfo: authToken?.['auth_info'],
+            uid: authToken?.['user_info']?.['uid'],
+            balance: user?.['user_info']?.['score_balance'],
         }, {headers: {'Content-Type': 'application/json'}})
         reset()
     }
 
-    const fetchMess = (mailbox) => {
-        let myHeaders = new Headers();
-        myHeaders.append("authorization", email.token);
-        let requestOptions = {
-            method: 'GET',
-            headers: myHeaders,
-            redirect: 'follow',
-        };
-        fetch(`https://mob2.temp-mail.org/messages`, requestOptions)
-            .then(response => response.json())
-            .then(async result => {
-                let regex = /\d+/g;
-                if (result?.messages[0]?.bodyPreview) {
-                    let string = result.messages[0].bodyPreview;
-                    let matches = string.match(regex);
-                    fetchVerify(matches[0].trim())
-                } else {
-                    //retry
-                    await wait(5000)
-                    fetchMess(mailbox)
-                }
-            })
-            .catch(error => {
-                setLoading(false)
-                console.log('error', error)
-            });
-    }
-
-    const fetchEmail = () => {
+    const fetchVerify = () => {
         setLoading(true)
-        let requestOptions = {
-            method: 'POST',
-            redirect: 'follow'
-        };
-        fetch("https://mob2.temp-mail.org/mailbox", requestOptions)
-            .then(response => response.json())
-            .then(result => {
-                if (result.mailbox) {
-                    setEmail(result);
-                    setLoading(false)
-                } else {
-                    fetchEmail();
-                }
-            })
-            .catch(error => {
-                setLoading(false)
-                reset()
-            });
-
-    }
-
-    const fetchVerify = (optCode) => {
-        setLoading(true)
+        const randomEmail = generateRandomEmail(['gmail.com'])
+        setEmail({mailbox: randomEmail, token: ''})
         const data = {
             "code": "",
-            "email_code": optCode,
+            "email_code": "",
             "referrer_code": ref,
-            "email": email.mailbox,
+            "email": randomEmail,
             "login_pwd": "Nguyentrong1",
             "login_pwd_confirm": "Nguyentrong1"
         }
@@ -160,33 +114,15 @@ export default function CheatBunny() {
             {
                 e: encrypt(data)
             }, {headers: {'Content-Type': 'application/json', ...getHeaderParams()}}).then(response => {
-            setAuthToken(response.data)
+                const res = decrypt(response.data.e)
+                if(res?.error){
+                    throw new Error(res?.error)
+                }
+            setAuthToken(res)
             setLoading(false)
         }).catch(error => {
             setLoading(false)
             reset()
-        })
-    }
-
-
-    const fetchCreateUser = (mailbox) => {
-        setLoading(true)
-        axios.post('https://bunnycontract.com/common/user/register-send-email',
-            {
-                e: encrypt({
-                    "code": "",
-                    "email_code": "",
-                    "referrer_code": ref,
-                    "email": mailbox,
-                    "login_pwd": "Nguyentrong1",
-                    "login_pwd_confirm": "Nguyentrong1"
-                })
-            }, {headers: {'Content-Type': 'application/json', ...getHeaderParams()}}).then(async response => {
-            wait(8000)
-            fetchMess(mailbox);
-        }).catch(error => {
-            fetchEmail()
-            setLoading(false)
         })
     }
 
@@ -364,7 +300,6 @@ export default function CheatBunny() {
             padding: CryptoJS.pad.Pkcs7
         });
         let str = encrypted.toString();
-        console.log(decrypt(str))
         return str;
     }
     const decrypt = (str) => {
@@ -380,6 +315,7 @@ export default function CheatBunny() {
             data = JSON.parse(data);
         } catch (error) {
         }
+        console.log(data)
         return data;
     }
 
@@ -406,12 +342,6 @@ export default function CheatBunny() {
     //         fetchEmail()
     //     }
     // }, [token]);
-
-    useEffect(() => {
-        if (email.mailbox && email.token) {
-            fetchCreateUser(email.mailbox)
-        }
-    }, [email])
 
     useEffect(() => {
         if (authToken) {
@@ -463,7 +393,7 @@ export default function CheatBunny() {
                 placeholder="Thời gian chờ"
                 onChange={(evt) => setSleep(evt.target.value)}
             />
-            <SubmitBtn onClick={fetchEmail}>Start Cheat</SubmitBtn>
+            <SubmitBtn onClick={fetchVerify}>Start Cheat</SubmitBtn>
             <SubmitBtn onClick={fetchBatchCheckin}>Batch Checkin</SubmitBtn>
             <SubmitBtn onClick={fetchUpdateDataSingle}>Single Update</SubmitBtn>
             <SubmitBtn onClick={fetchUpdateData}>Batch Update</SubmitBtn>
