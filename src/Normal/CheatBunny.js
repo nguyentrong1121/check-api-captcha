@@ -3,7 +3,7 @@ import HCaptcha from "@hcaptcha/react-hcaptcha";
 import styled from "styled-components";
 import axios from "axios";
 import Loading from "react-fullscreen-loading";
-import {generateRandomEmail, getRandomNumber} from "./utils";
+import {generateRandomEmail, getRandomNumber} from "../utils";
 
 var CryptoJS = require("crypto-js");
 
