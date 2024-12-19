@@ -49,17 +49,78 @@ export const generateRandomPhoneNumber = () => {
     return phoneNumber.join('');
 };
 
-export const generateRandomEmail = () => {
-    const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let email = '';
-    for (let i = 0; i < 10; i++) {
-        email += characters.charAt(Math.floor(Math.random() * characters.length));
+export const generateRandomEmail = (domains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'example.com']) => {
+    // Mảng các tên phổ biến ở Việt Nam và quốc tế
+    const vietnameseNames = [
+        'anh', 'bich', 'cuong', 'dung', 'em', 'hieu', 'hoa', 'lan', 'minh', 'tuan',
+        'viet', 'hoa', 'ly', 'thu', 'chung', 'lanh', 'ha', 'phuong', 'nguyen', 'dai',
+        'son', 'bao', 'trung', 'tien', 'quang', 'tinh', 'hien', 'quyen', 'tuyet', 'linh',
+        'xuan', 'thao', 'hoang', 'khanh', 'thang', 'dan', 'giang', 'linh', 'kieu', 'mai',
+        'lam', 'nhi', 'duy', 'thanh', 'tai', 'vui', 'ngoc', 'dai', 'vuu', 'cao', 'dong',
+        'mieu', 'duong', 'bich', 'hieu', 'tung', 'mai', 'sang', 'khanh', 'chi', 'dieu',
+        'tuyet', 'vân', 'quoc', 'hang', 'quan', 'quan', 'huy', 'chieu', 'hien', 'huy',
+        'minh', 'khai', 'bình', 'phat', 'luan', 'son', 'tien', 'nhi'
+    ];
+
+    const englishNames = [
+        'john', 'mary', 'michael', 'sarah', 'emma', 'alex', 'david', 'chris', 'kate', 'lily',
+        'jack', 'olivia', 'lucas', 'sophia', 'daniel', 'mason', 'avery', 'logan', 'ella', 'isabella',
+        'james', 'chloe', 'jackson', 'madison', 'liam', 'amelia', 'charlotte', 'henry', 'lucy', 'peter',
+        'jake', 'ella', 'noah', 'ella', 'sophia', 'grace', 'harry', 'george', 'alice', 'riley',
+        'benjamin', 'zoe', 'william', 'riley', 'zoey', 'hannah', 'evelyn', 'matthew', 'caroline',
+        'ethan', 'madeline', 'leah', 'grace', 'ella', 'bella', 'lucas', 'lucy', 'ruby', 'jackson',
+        'olivia', 'kylie', 'abigail', 'henry', 'zoey', 'samuel', 'madeline', 'michael', 'lucas', 'ella',
+        'andrew', 'harrison', 'alice', 'grace', 'brian', 'danielle', 'emily', 'michael', 'mia', 'bella'
+    ];
+
+    // Tạo một phần đầu của email (tên) bằng cách chọn ngẫu nhiên tên từ tiếng Việt hoặc tiếng Anh
+    let name = '';
+
+    // Chọn một tên ngẫu nhiên từ các tên Việt hoặc Anh
+    name += Math.random() > 0.5
+        ? vietnameseNames[Math.floor(Math.random() * vietnameseNames.length)]
+        : englishNames[Math.floor(Math.random() * englishNames.length)];
+
+    // Tạo tên dài hơn bằng cách nối nhiều tên lại với nhau
+    let nameLength = Math.floor(Math.random() * 3) + 1; // Tạo tên dài 1-3 phần
+    for (let i = 0; i < nameLength; i++) {
+        name += (Math.random() > 0.5
+            ? vietnameseNames[Math.floor(Math.random() * vietnameseNames.length)]
+            : englishNames[Math.floor(Math.random() * englishNames.length)]);
     }
-    const domains = ['gmail.com', 'yahoo.com', 'outlook.com', 'mail.com'];
+
+    // Cơ hội để số ngẫu nhiên xuất hiện và vị trí ngẫu nhiên
+    let randomNumber = '';
+    if (Math.random() > 0.5) {
+        // Nếu có số, tạo một số ngẫu nhiên (0-9999)
+        randomNumber = Math.floor(Math.random() * 10000);
+        // Chọn vị trí ngẫu nhiên để chèn số (trước, giữa hoặc sau tên)
+        const position = Math.floor(Math.random() * 3);
+        if (position === 0) {
+            name = `${randomNumber}${name}`;  // Chèn số vào đầu
+        } else if (position === 1) {
+            const midIndex = Math.floor(name.length / 2);  // Chèn số vào giữa tên
+            name = name.slice(0, midIndex) + randomNumber + name.slice(midIndex);
+        } else {
+            name = `${name}${randomNumber}`;  // Chèn số vào cuối
+        }
+    }
+
+    // Thêm ký tự đặc biệt (dấu gạch dưới, dấu chấm, hoặc dấu gạch nối) vào tên
+    if (Math.random() > 0.88) { // Giảm tỉ lệ xuất hiện ký tự đặc biệt xuống 30%
+        const specialChars = ['.', '-', '_'];
+        const randomChar = specialChars[Math.floor(Math.random() * specialChars.length)];
+        const randomIndex = Math.floor(Math.random() * name.length);
+        name = name.slice(0, randomIndex) + randomChar + name.slice(randomIndex);
+    }
+
+    // Chọn ngẫu nhiên một domain
     const domain = domains[Math.floor(Math.random() * domains.length)];
-    email += '@' + domain;
-    return email;
+
+    // Kết hợp tên email với domain
+    return `${name}@${domain}`;
 };
+
 
 export const generateRandomReg = () => ({
     phoneNumber: generateRandomPhoneNumber(),
