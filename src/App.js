@@ -1,17 +1,14 @@
 import './App.css';
 import {useState} from "react";
-import axios from "axios";
-import moment from "moment";
-import * as xlsx from "xlsx";
-import {CopyToClipboard} from "react-copy-to-clipboard/src";
-import CheatPrimal from "./CheatPrimal";
-import TonPlace from "./TonPlace";
-import CheatBomofy from "./CheatBomofy";
-import Camel from "./Camel";
-import CheatTaker from "./CheatTaker";
-import CheatBytebeat from "./CheatBytebeat";
-import CheatBunny from "./CheatBunny";
-import CheatSoSo from "./CheatSoSo";
+import CheatPrimal from "./Normal/CheatPrimal";
+import CheatBomofy from "./Quantify/CheatBomofy";
+import Camel from "./Normal/Camel";
+import CheatTaker from "./Normal/CheatTaker";
+import CheatBytebeat from "./Quantify/CheatBytebeat";
+import CheatBunny from "./Normal/CheatBunny";
+import CheatSoSo from "./Normal/CheatSoSo";
+import SunBit from "./Quantify/SunBit";
+import CheatTriller from "./Quantify/CheatTriller";
 
 function App() {
     const [tab, setTab] = useState(0);
@@ -52,6 +49,16 @@ function App() {
             id: 7,
             name: 'Cheat SoSo',
             component: () => <CheatSoSo/>
+        },
+        {
+            id: 8,
+            name: 'Cheat Sunbit',
+            component: () => <SunBit/>
+        },
+        {
+            id: 9,
+            name: 'Cheat Triller',
+            component: () => <CheatTriller/>
         }
     ])
 

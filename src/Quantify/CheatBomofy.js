@@ -3,7 +3,7 @@ import HCaptcha from "@hcaptcha/react-hcaptcha";
 import styled from "styled-components";
 import axios from "axios";
 import Loading from "react-fullscreen-loading";
-import {decryptData, encryptData, generateRandomReg} from "./utils";
+import {decryptData, encryptData, generateRandomReg} from "../utils";
 import moment from "moment";
 
 var bu = require("crypto-js");

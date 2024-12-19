@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import styled from "styled-components";
 import Loading from "react-fullscreen-loading";
-import {getRandomNumber, sleep} from "./utils";
+import {getRandomNumber, sleep} from "../utils";
 
 const SubmitBtn = styled.div`
   width: 100px;

@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import styled from "styled-components";
 import axios from "axios";
 import Loading from "react-fullscreen-loading";
-import {generateDeviceToken, generatePhoneModel, generateUUID, generateVietnameseName, sleep} from "./utils";
+import {generateDeviceToken, generatePhoneModel, generateUUID, generateVietnameseName, sleep} from "../utils";
 
 const db = 'https://api.sheetbest.com/sheets/23d09ca3-de8d-4d86-837e-0a168d731d2d'
 const SubmitBtn = styled.div`
