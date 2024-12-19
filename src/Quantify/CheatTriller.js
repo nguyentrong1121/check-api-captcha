@@ -142,7 +142,7 @@ export default function CheatTriller() {
                             authorization: 'Bearer ' + auth
                         }
                     })
-                    if(user.data.total_team_count == 5){
+                    if(user.data.total_team_count >= 5){
                         setAuthToken(auth)
                     }else{
                         await fetchCreateUser(ref, auth)
