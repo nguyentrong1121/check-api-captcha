@@ -158,7 +158,7 @@ export default function CheatTriller() {
     const fetchBatchCheckin = async () => {
         const {data: lstAccount} = await axios.get(db, {headers: {'Content-Type': 'application/json'}})
         for (let i = 0; i < lstAccount.length; i++) {
-            const {data: loginRes} = await axios.post('https://api.triller-tv.com/api/user/login?lang=vi',
+            const {data: loginRes} = await axios.post('https://api.triller-tv.com/api/user/login',
                 {
                     "account": lstAccount[i].mailbox,
                     "pwd": "940289dda3df035b9edb74a11e012aff",

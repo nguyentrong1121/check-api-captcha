@@ -48,6 +48,24 @@ export const generateRandomPhoneNumber = () => {
     }
     return phoneNumber.join('');
 };
+export const generatePhoneNumberVN = () => {
+    // Các đầu số của từng nhà mạng (bỏ số 0 ở đầu)
+    const viettelPrefixes = ["86", "96", "97", "98", "32", "33", "34", "35", "36", "37", "38", "39"];
+    const vinaphonePrefixes = ["88", "91", "94", "83", "84", "85", "81", "82"];
+    const mobifonePrefixes = ["89", "90", "93", "70", "79", "77", "76", "78"];
+
+    // Gộp tất cả đầu số
+    const allPrefixes = [...viettelPrefixes, ...vinaphonePrefixes, ...mobifonePrefixes];
+
+    // Chọn một đầu số ngẫu nhiên
+    const randomPrefix = allPrefixes[Math.floor(Math.random() * allPrefixes.length)];
+
+    // Tạo phần đuôi ngẫu nhiên (7 chữ số)
+    const randomTail = Math.floor(1000000 + Math.random() * 9000000).toString();
+
+    // Kết hợp đầu số và phần đuôi
+    return randomPrefix + randomTail;
+};
 
 export const generateRandomEmail = (domains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'example.com']) => {
     // Mảng các tên phổ biến ở Việt Nam và quốc tế
@@ -123,7 +141,7 @@ export const generateRandomEmail = (domains = ['gmail.com', 'yahoo.com', 'outloo
 
 
 export const generateRandomReg = () => ({
-    phoneNumber: generateRandomPhoneNumber(),
+    phoneNumber: generatePhoneNumberVN(),
     email: generateRandomEmail()
 });
 
