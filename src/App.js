@@ -9,6 +9,7 @@ import CheatBunny from "./Normal/CheatBunny";
 import CheatSoSo from "./Normal/CheatSoSo";
 import SunBit from "./Quantify/SunBit";
 import CheatTriller from "./Quantify/CheatTriller";
+import CheatICheck from "./Normal/CheatICheck";
 
 function App() {
     const [tab, setTab] = useState(0);
@@ -59,6 +60,11 @@ function App() {
             id: 9,
             name: 'Cheat Triller',
             component: () => <CheatTriller/>
+        },
+        {
+            id: 10,
+            name: 'Cheat ICheck',
+            component: () => <CheatICheck/>
         }
     ])
 
